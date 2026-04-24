@@ -93,6 +93,21 @@ def read_calibration_images(img_dir, shape, max_num):
     use_count = min(len(files), max_num)
     log("校准", f"共 {len(files)} 张，使用 {use_count} 张")
 
+    # ════════════════════════════════════════════════════════════════════════════
+    # 预处理参数（K230 部署时必须对齐！）
+    # ─────────────────────────────────────────────────────────────────────────────
+    # 1. 输入范围：归一化到 0~1 (除以 255.0)
+    # 2. 颜色格式：RGB（cv2.cvtColor BGR→RGB）
+    # 3. Layout：NCHW（通道在前）
+    # 4. 均值/方差：无（YOLO 默认不使用 mean/std 归一化）
+    # 5. 输入尺寸：由 INPUT_SHAPE 指定
+    # 
+    # K230 部署代码必须执行相同的预处理：
+    #    - ai2d resize 后，手动执行 img * (1.0/255.0) 归一化
+    #    - 确保输入是 RGB 格式（不是 BGR）
+    # ════════════════════════════════════════════════════════════════════════════
+    log("校准", "预处理: RGB格式, NCHW布局, 归一化[0,1], 无mean/std")
+
     data_list = []
     _, C, H, W = shape
     for i, filename in enumerate(files[:use_count], 1):
@@ -107,6 +122,7 @@ def read_calibration_images(img_dir, shape, max_num):
             log("校准", f"  已加载 {i}/{use_count}")
 
     log("校准", f"成功加载 {len(data_list)} 张, 形状 {data_list[0].shape}")
+    log("校准", "⚠️ 部署时请确保: ai2d输出后手动归一化 *1/255, 输入RGB格式")
     return data_list
 
 

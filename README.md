@@ -104,6 +104,53 @@ python easy_k230.py
 
 ---
 
+## ⚠️ 重要：预处理对齐
+
+**这是 K230 部署成功的关键！** 如果预处理不对齐，模型会"失明"。
+
+### 转换时的预处理参数
+
+本工具在量化校准时使用的预处理：
+
+| 参数 | 值 | 说明 |
+|------|-----|------|
+| 输入范围 | 0~1 | `img / 255.0` 归一化 |
+| 颜色格式 | RGB | BGR → RGB 转换 |
+| Layout | NCHW | 通道在前 |
+| 均值/方差 | 无 | YOLO 默认不使用 |
+
+### K230 部署代码必须对齐
+
+```python
+# K230 部署时的预处理示例
+def run_with_normalize(self, input_np):
+    # Step 1: ai2d resize (uint8 → uint8)
+    ai2d_input = nn.from_numpy(input_np)
+    self.ai2d.run(ai2d_input, self.ai2d_output_tensor)
+    
+    # Step 2: 手动归一化 (uint8 [0,255] → float32 [0,1])
+    ai2d_out = self.ai2d_output_tensor.to_numpy()
+    normalized_input = ai2d_out * (1.0 / 255.0)  # 关键！
+    normalized_tensor = nn.from_numpy(normalized_input)
+    
+    # Step 3: KPU 推理
+    self.kpu.set_input_tensor(0, normalized_tensor)
+    self.kpu.run()
+    ...
+```
+
+### 对齐检查清单
+
+```
+□ 图像尺寸：训练 imgsz = 转换 input_shape = 部署 model_input_size
+□ 颜色格式：训练 RGB = 转换校准 RGB = 部署 RGB
+□ 归一化：  训练 /255 = 转换校准 /255 = 部署 *1/255
+□ Layout：  训练 NCHW = 转换 NCHW = 部署 NCHW
+□ 均值方差：训练无 = 转换无 = 部署无
+```
+
+---
+
 ## 📁 项目结构
 
 ```
