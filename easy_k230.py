@@ -219,8 +219,8 @@ def setup_proxy(proxy_port):
 
 def format_duration(seconds):
     if seconds < 60:
-        return f"{seconds:.0f}秒"
-    return f"{seconds // 60}分{seconds % 60:02d}秒"
+        return f"{int(seconds)}秒"
+    return f"{int(seconds // 60)}分{int(seconds % 60):02d}秒"
 
 
 def format_size(path):
