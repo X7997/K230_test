@@ -34,7 +34,7 @@ jobs:
       - name: Run conversion
         env:
           K230_MODEL_PATH: models/input.pt
-          K230_KMODEL_PATH: results/output.kmodel
+          K230_KMODEL_PATH: results/food.kmodel
           K230_CALIB_DIR: calib/
           K230_INPUT_SHAPE: "1,3,320,320"
           K230_ONNX_IMGSZ: "320"
@@ -44,7 +44,7 @@ jobs:
           K230_QUANT_TYPE: "uint8"
           K230_W_QUANT_TYPE: "uint8"
           K230_CALIB_METHOD: "Kld"
-          K230_MAX_CALIB_IMAGES: "999"
+          K230_MAX_CALIB_IMAGES: "389"
           K230_TARGET: "k230"
         run: |
           mkdir -p results
